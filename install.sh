@@ -2,10 +2,11 @@
 sudo apt update && sudo apt full-upgrade -y
 # dependencies
 read -p "During installation you will be asked whether to enable real time priority for jackd process. Press enter and enable RT priority."
-sudo apt install qjackctl bluez-alsa-utils \  # audio
-    git libncurses5-dev flex build-essential bison libssl-dev bc make linux-headers-rpi-v8 \ # kernel
-    libasound2-dev libjack-jackd2-dev liblilv-dev lilv-utils lv2-dev cmake ninja-build \ # sushi
-    mold zram-tools -y # improve compilation 
+sudo apt install qjackctl bluez-alsa-utils \
+    git libncurses5-dev flex build-essential bison libssl-dev bc make linux-headers-rpi-v8 \
+    libreadline-dev liblilv-dev lilv-utils libfftw3-dev libjack-jackd2-dev cmake \
+    autoconf libasound2-dev libdbus-1-dev libglib2.0-dev libxml2-dev libcairo2-dev libreadline-dev libgsl-dev libgtk-3-dev libgtksourceview-3.0-dev xorg-dev libxcb-dri2-0-dev libpcre2-dev libpcre3-dev gperf \ 
+    mold zram-tools -y
 # configure pi os
 sudo systemctl disable NetworkManager-wait-online.service
 sudo raspi-config nonint do_vnc 0
@@ -44,20 +45,20 @@ yes "" | make localmodconfig
 CFLAGS="$CFLAGS -fuse-ld=mold"
 CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
 make -j$(nproc) Image.gz modules dtbs
-sudo make -j4 modules_install
+sudo make -j$(nproc) modules_install
 sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
 sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
 sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
 sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
 sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
-# sushi
-cd ~/
-git clone --recurse-submodules https://github.com/elk-audio/sushi.git
-cd sushi && mkdir build && cd build
-export VCPKG_FORCE_SYSTEM_BINARIES=1
-../third-party/vcpkg/bootstrap-vcpkg.sh
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../third-party/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-make 
+
+# mod-desktop
+git clone --recursive https://github.com/mod-audio/mod-desktop.git
+cd mod-desktop
+# http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD do ~/PawPawBuilds/builds/linux-aarch64/db-5.3.28/dist/config.guess
+make -j$(nproc)
+sudo make install
+
 ### systemd service
 echo "[Unit] \
 Description=Zita-J2A Service \
@@ -75,3 +76,4 @@ sudo systemctl start bt-connect.service
 sudo systemctl enable bt-connect.service
 
 sudo reboot
+

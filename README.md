@@ -11,14 +11,14 @@ RaspiAmp is a script to configure your Raspberry Pi 4B to act as an guitar ampli
     - VNC
 - compiles
     - real time kernel (lower latency)
-    - [Sushi](https://github.com/elk-audio/sushi)
+    - [MOD Desktop](https://github.com/mod-audio/mod-desktop)
 - configures
     - HifiBerry HAT
     - Bluetooth (audio quality fix)
 # How to use?
 First flash your Pi with Raspberry Pi OS Desktop version. Log in using SSH or GUI and and...
 ``` sh
-sh <(curl -L https://raw.githubusercontent.com/krkrs/RaspiAmp/refs/heads/master/install.sh) 
+sh <(curl -L https://raw.githubusercontent.com/krkrs/RaspiAmp/refs/heads/main/install.sh) 
 ```
 ... and wait. It will take some time.
 # Future functionality
