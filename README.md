@@ -17,9 +17,12 @@ RaspiAmp is a script to configure your Raspberry Pi 4B to act as an guitar ampli
     - Bluetooth (audio quality fix)
     - system for real time performance
 # Performance
-Jack is able to run with 2ms latency. Bluetooth latency depends on BT device it self. Minimal possible period value is 512. With good speaker/headphones it is enough to play.
+Jack is able to run with 1.33ms latency. Bluetooth latency depends on BT device it self. Minimal possible period value is 512. With good speaker/headphones it is enough to play. I can't hear delay with *JBL Go 2* however *JBL Go 3* is unplayable.
 
 # How to use?
+> [!IMPORTANT]  
+> Do not update OS using icon in top right corner of the screen. It will break things. Opt for *apt upgrade* instead.
+
 First flash your Pi with Raspberry Pi OS Desktop version. Log in using SSH or GUI and and...
 ``` sh
 sh <(curl -L https://raw.githubusercontent.com/krkrs/RaspiAmp/refs/heads/main/install.sh) 
