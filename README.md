@@ -30,7 +30,6 @@ First flash your Pi with Raspberry Pi OS Desktop version. Log in using SSH or GU
 ``` sh
 sh <(curl -L https://raw.githubusercontent.com/krkrs/RaspiAmp/refs/heads/main/install.sh) 
 ```
-... and wait. It will take some time. After reboot run script again and wait some more.
 # Quick start
 Log in with VNC, open Guitarix, start jack. Next in Guitarix go to `Engine -> Jack Ports` and select your inputs and outputs. 
 ## Bluetooth
