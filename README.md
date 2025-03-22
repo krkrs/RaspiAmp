@@ -1,6 +1,11 @@
 # RaspiAmp
 RaspiAmp is a script to configure your Raspberry Pi 4B to act as a guitar amplifier.
 ![the device](media/image.jpg)
+
+
+https://github.com/user-attachments/assets/1850dc1a-e2a1-4baf-b6a5-a3e61b5c2ff3
+
+
 # Hardware
 - [HifiBerry DAC+ ADC Pro](https://www.hifiberry.com/shop/boards/dacplus-adc/)
 - Raspberry Pi 4B with 2GB RAM or more
