@@ -47,6 +47,10 @@ function configure_system {
     sudo sed -i 's/btc_mode=1/btc_mode=4/g' /usr/lib/firmware/brcm/brcmfmac43455-sdio.txt
     # vnc fps
     sudo sed -i 's/--detached/--detached --max-fps 1/g' /usr/sbin/wayvnc-run.sh
+    # memory lock limit
+    sudo sh -c "echo @audio - memlock 256000 >> /etc/security/limits.conf"
+    # rt priority for audio group
+    sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
 }
 
 function configure_dac_adc {
@@ -67,13 +71,12 @@ function install_guitarix {
     sudo ./waf install
 }
 
-function install_jackd2 {
+function install_jack2 {
     cd ~/
-    git clone --recursive https://github.com/jackaudio/jack2.git
+    git clone https://github.com/jackaudio/jack2 --depth 1
     cd jack2
-    ./waf configure
-    ./waf
-    ./waf install
+    ./waf configure --alsa --libdir=/usr/lib/aarch64-linux-gnu/
+    sudo ./waf install
 }
 
 function compile_RT_kernel-path {
@@ -141,7 +144,7 @@ install_dependencies
 configure_system
 configure_dac_adc
 install_guitarix
-install_jackd2
+install_jack2
 install_qjackctl
 compile_RT_kernel
 sudo tuned-adm profile realtime
