@@ -1,4 +1,5 @@
 #!/bin/bash
+nproc=$(( $(nproc) + 2 ))
 
 function install_dependencies {
     sudo apt update && sudo apt full-upgrade -y
@@ -24,15 +25,15 @@ function install_dependencies {
         python3 \
         sassc \
         fonts-roboto \
-        qt6-base-dev qt6-svg-dev libportaudio2
+        qt6-base-dev qt6-svg-dev libportaudio2 qt6-tools-dev
 }
 
 function install_qjackctl {
     cd ~/
-    cmake -B build
-    cmake --build build --parallel 4
     git clone https://github.com/rncbc/qjackctl
     cd qjackctl
+    cmake -B build -DCONFIG_JACK_VERSION=ON
+    cmake --build build --parallel $nproc
     sudo cmake --install build
 }
 
@@ -127,8 +128,8 @@ function compile_RT_kernel {
     CFLAGS="$CFLAGS -fuse-ld=mold"
     CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
     make prepare
-    make CFLAGS='-O3 -march=native' -j6 Image.gz modules dtbs
-    sudo make -j6 modules_install
+    make CFLAGS='-O3 -march=native' -"$nproc" Image.gz modules dtbs
+    sudo make -"$nproc" modules_install
     sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
     sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
     sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
