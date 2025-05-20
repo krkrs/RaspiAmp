@@ -25,7 +25,8 @@ function install_dependencies {
         python3 \
         sassc \
         fonts-roboto \
-        qt6-base-dev qt6-svg-dev libportaudio2 qt6-tools-dev
+        qt6-base-dev qt6-svg-dev libportaudio2 qt6-tools-dev \
+        imagemagick
 }
 
 function install_qjackctl {
@@ -41,6 +42,9 @@ function configure_system {
     sudo tuned-adm profile throughput-performance
     sudo systemctl disable NetworkManager-wait-online.service
     sudo raspi-config nonint do_vnc 0
+    # solid background 
+    convert -size 100x100 xc:red red.png
+    sudo pcmanfm --wallpaper-mode=stretch --set-wallpaper=red.png
     # remove unnecessary packages
     sudo apt purge cups modemmanager --auto-remove -y
     # fix bluetooth audio quality
@@ -51,6 +55,8 @@ function configure_system {
     sudo sh -c "echo @audio - memlock 256000 >> /etc/security/limits.conf"
     # rt priority for audio group
     sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
+    # in case you ever run audio server as root
+    sudo usermod -a -G audio root
 }
 
 function configure_dac_adc {
@@ -77,41 +83,6 @@ function install_jack2 {
     cd jack2
     ./waf configure --alsa --libdir=/usr/lib/aarch64-linux-gnu/
     sudo ./waf install
-}
-
-function compile_RT_kernel-path {
-    cd ~/
-    git clone --depth=1 --branch "rpi-6.6.y" https://github.com/raspberrypi/linux
-    cd linux
-    VERSION=$(head Makefile -n 4 | grep VERSION | cut -c11-)
-    PATCHLEVEL=$(head Makefile -n 4 | grep PATCHLEVEL | cut -c14-)
-    SUBLEVEL=$(head Makefile -n 4 | grep SUBLEVEL | cut -c12-)
-    KERNEL_URL="https://www.kernel.org/pub/linux/kernel/projects/rt/$VERSION.$PATCHLEVEL/"
-    wget "$KERNEL_URL"
-    TMP_STR=$(cat index.html | grep patch | head -1 | cut -c10-)
-    KERNEL_URL+=$(echo ${TMP_STR%%\"*})
-    wget "$KERNEL_URL"
-    gunzip patch*
-    cat patch* | patch -p1
-    KERNEL=kernel8
-    make bcm2711_defconfig
-    ## configure kernel for RT
-    sed -i 's/CONFIG_LOCALVERSION="-v8"/CONFIG_LOCALVERSION="-v8-rt"/g' .config
-    sed -i 's/# CONFIG_PREEMPT is not set/CONFIG_LOCALVERSION="-v8-rt"/g' .config
-    sed -i 's/CONFIG_PREEMPT_BUILD=y/ /g' .config
-    sed -i 's/CONFIG_PREEMPT=y/# CONFIG_PREEMPT is not set/g' .config
-    sed -i 's/# CONFIG_PREEMPT_RT is not set/CONFIG_PREEMPT_RT=y/g' .config
-    sed -i 's/# CONFIG_PREEMPT_DYNAMIC is not set/ /g' .config
-    yes "" | make localmodconfig
-    CFLAGS="$CFLAGS -fuse-ld=mold"
-    CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
-    make -j$(nproc) Image.gz modules dtbs
-    sudo make -j$(nproc) modules_install
-    sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
-    sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
-    sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
-    sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
-    sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
 }
 
 function compile_RT_kernel {
