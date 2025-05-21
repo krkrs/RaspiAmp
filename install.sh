@@ -26,7 +26,8 @@ function install_dependencies {
         sassc \
         fonts-roboto \
         qt6-base-dev qt6-svg-dev libportaudio2 qt6-tools-dev \
-        imagemagick
+        imagemagick \
+        libasound2-dev
 }
 
 function install_qjackctl {
@@ -57,6 +58,7 @@ function configure_system {
     sudo sh -c "echo @audio - rtprio 75 >> /etc/security/limits.conf"
     # in case you ever run audio server as root
     sudo usermod -a -G audio root
+    sudo mkdir -p /root/.config
 }
 
 function configure_dac_adc {
