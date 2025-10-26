@@ -1,4 +1,10 @@
 #!/bin/bash
+read -p "Does your device have 4GB of RAM or more? (yes/no): " answer
+if [ "$answer" = "yes" ]; then
+    build_root="/tmp/"
+else
+    build_root="~/"
+fi
 nproc=$(( $(nproc) + 2 ))
 
 function install_dependencies {
@@ -31,12 +37,14 @@ function install_dependencies {
 }
 
 function install_qjackctl {
-    cd ~/
+    cd "${build_root}"
     git clone https://github.com/rncbc/qjackctl
     cd qjackctl
     cmake -B build -DCONFIG_JACK_VERSION=ON
     cmake --build build --parallel $nproc
     sudo cmake --install build
+    cd "${build_root}"
+    sudo rm -r qjackctl
 }
 
 function configure_system {
@@ -69,7 +77,7 @@ function configure_dac_adc {
 }
 
 function install_guitarix {
-    cd ~/
+    cd "${build_root}"
     git clone https://github.com/brummer10/guitarix.git
     cd guitarix
     git submodule update --init --recursive
@@ -79,18 +87,22 @@ function install_guitarix {
     ./waf configure --prefix=/usr --includeresampler --includeconvolver --optimization
     ./waf build
     sudo ./waf install
+    cd "${build_root}"
+    sudo rm -r guitarix
 }
 
 function install_jack2 {
-    cd ~/
+    cd "${build_root}"
     git clone https://github.com/jackaudio/jack2 --depth 1
     cd jack2
     ./waf configure --alsa --libdir=/usr/lib/aarch64-linux-gnu/
     sudo ./waf install
+    cd "${build_root}"
+    sudo rm -r jack2
 }
 
 function compile_RT_kernel {
-    cd ~/
+    cd "${build_root}"
     git clone --depth=1 --branch "rpi-6.18.y" https://github.com/raspberrypi/linux
     cd linux
     KERNEL=kernel8
@@ -106,13 +118,15 @@ function compile_RT_kernel {
     CFLAGS="$CFLAGS -fuse-ld=mold"
     CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
     make prepare
-    make CFLAGS='-O3 -march=native' -j"$nproc" Image.gz modules dtbs
+    make CFLAGS='-O2 -march=native' -j"$nproc" Image.gz modules dtbs
     sudo make -j"$nproc" modules_install
     sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
     sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
     sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
     sudo cp arch/arm64/boot/dts/overlays/*.dtb* /boot/firmware/overlays/
     sudo cp arch/arm64/boot/dts/overlays/README /boot/firmware/overlays/
+    cd "${build_root}"
+    sudo rm -r linux
 }
 
 install_dependencies
