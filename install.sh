@@ -115,10 +115,9 @@ function compile_RT_kernel {
     sed -i 's/# CONFIG_PREEMPT_RT is not set/CONFIG_PREEMPT_RT=y/g' .config
     sed -i 's/# CONFIG_PREEMPT_DYNAMIC is not set/ /g' .config
     yes "" | make localmodconfig
-    CFLAGS="$CFLAGS -fuse-ld=mold"
     CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
     make prepare
-    make CFLAGS='-O2 -march=native' -j"$nproc" Image.gz modules dtbs
+    make CFLAGS='-O2 -march=native -fuse-ld=mold' -j"$nproc" Image.gz modules dtbs
     sudo make -j"$nproc" modules_install
     sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
     sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
