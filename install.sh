@@ -51,7 +51,7 @@ function configure_system {
     # fix bluetooth audio quality
     sudo sed -i 's/btc_mode=1/btc_mode=4/g' /usr/lib/firmware/brcm/brcmfmac43455-sdio.txt
     # vnc fps
-    sudo sed -i 's/--detached/--detached --max-fps 1/g' /usr/sbin/wayvnc-run.sh
+    sudo sed -i 's/--detached/--detached --max-fps 5/g' /usr/sbin/wayvnc-run.sh
     # memory lock limit
     sudo sh -c "echo @audio - memlock 256000 >> /etc/security/limits.conf"
     # rt priority for audio group
@@ -73,7 +73,9 @@ function install_guitarix {
     git clone https://github.com/brummer10/guitarix.git
     cd guitarix
     git submodule update --init --recursive
-    cd trunk
+    wget https://github.com/brummer10/guitarix/archive/refs/tags/V0.47.0.tar.gz
+    tar -xvzf V0.47.0.tar.gz
+    cp -r guitarix-0.47.0/trunk ./
     ./waf configure --prefix=/usr --includeresampler --includeconvolver --optimization
     ./waf build
     sudo ./waf install
@@ -89,7 +91,7 @@ function install_jack2 {
 
 function compile_RT_kernel {
     cd ~/
-    git clone --depth=1 --branch "rpi-6.14.y" https://github.com/raspberrypi/linux
+    git clone --depth=1 --branch "rpi-6.18.y" https://github.com/raspberrypi/linux
     cd linux
     KERNEL=kernel8
     make bcm2711_defconfig
@@ -104,8 +106,8 @@ function compile_RT_kernel {
     CFLAGS="$CFLAGS -fuse-ld=mold"
     CXXFLAGS="$CXXFLAGS -fuse-ld=mold"
     make prepare
-    make CFLAGS='-O3 -march=native' -"$nproc" Image.gz modules dtbs
-    sudo make -"$nproc" modules_install
+    make CFLAGS='-O3 -march=native' -j"$nproc" Image.gz modules dtbs
+    sudo make -j"$nproc" modules_install
     sudo cp /boot/firmware/$KERNEL.img /boot/firmware/$KERNEL-backup.img
     sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
     sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
